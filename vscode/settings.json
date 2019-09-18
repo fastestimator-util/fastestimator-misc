@@ -1,0 +1,49 @@
+{
+    // Editor
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "editor.formatOnPaste": true,
+    "editor.rulers": [
+        120
+    ],
+    "diffEditor.ignoreTrimWhitespace": false,
+    // Files
+    "files.autoSave": "afterDelay",
+    "files.trimTrailingWhitespace": true,
+    // Git
+    "git.autofetch": true,
+    // Python Formatting
+    "autoDocstring.docstringFormat": "google",
+    "python.formatting.provider": "yapf",
+    "python.sortImports.args": [
+        "-l",
+        "120",
+        "-m",
+        "2"
+    ],
+    // pylint
+    "python.linting.pylintUseMinimalCheckers": false,
+    "python.linting.pylintArgs": [
+        "--max-line-length=120",
+        "--max-attributes=20",
+        "--ignored-modules=tensorflow,cv2",
+        "--contextmanager-decorators=tensorflow.python.util.tf_contextlib.contextmanager"
+    ],
+    //pytest
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "-v"
+    ],
+    // Files Excluded By VSCode
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/.ipynb_checkpoints": true,
+        "*.egg-info": true,
+    }
+}
