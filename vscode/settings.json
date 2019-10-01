@@ -29,7 +29,8 @@
         "--max-line-length=120",
         "--max-attributes=20",
         "--ignored-modules=tensorflow,cv2",
-        "--contextmanager-decorators=tensorflow.python.util.tf_contextlib.contextmanager"
+        "--contextmanager-decorators=tensorflow.python.util.tf_contextlib.contextmanager",
+        "--good-names=df"
     ],
     //pytest
     "python.testing.nosetestsEnabled": false,
