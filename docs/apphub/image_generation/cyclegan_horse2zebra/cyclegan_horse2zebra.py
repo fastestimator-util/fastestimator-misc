@@ -20,11 +20,11 @@ import tensorflow as tf
 import fastestimator as fe
 from fastestimator.architecture.cyclegan import build_discriminator, build_generator
 from fastestimator.dataset.horse2zebra import load_data
-from fastestimator.estimator.trace import ModelSaver
-from fastestimator.network.loss import Loss
-from fastestimator.network.model import FEModel, ModelOp
-from fastestimator.record.preprocess import ImageReader
-from fastestimator.util.op import TensorOp
+from fastestimator.op import TensorOp
+from fastestimator.op.numpyop import ImageReader
+from fastestimator.op.tensorop import Loss, ModelOp
+from fastestimator.trace import ModelSaver
+from fastestimator.util import RecordWriter
 
 
 class Myrescale(TensorOp):
@@ -85,11 +85,11 @@ class DLoss(Loss):
         return 0.5 * total_loss
 
 
-def get_estimator(weight=10.0, epochs=200, model_dir=tempfile.mkdtemp()):
+def get_estimator(weight=10.0, epochs=200, steps_per_epoch=None, model_dir=tempfile.mkdtemp()):
     trainA_csv, trainB_csv, _, _, parent_path = load_data()
     tfr_save_dir = os.path.join(parent_path, 'FEdata')
     # Step 1: Define Pipeline
-    writer = fe.RecordWriter(
+    writer = RecordWriter(
         train_data=(trainA_csv, trainB_csv),
         save_dir=tfr_save_dir,
         ops=([ImageReader(inputs="imgA", outputs="imgA", parent_path=parent_path)],
@@ -105,25 +105,25 @@ def get_estimator(weight=10.0, epochs=200, model_dir=tempfile.mkdtemp()):
             RandomJitter(inputs="imgB", outputs="real_B")
         ])
     # Step2: Define Network
-    g_AtoB = FEModel(model_def=build_generator,
-                     model_name="g_AtoB",
-                     loss_name="g_AtoB_loss",
-                     optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
+    g_AtoB = fe.build(model_def=build_generator,
+                      model_name="g_AtoB",
+                      loss_name="g_AtoB_loss",
+                      optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
 
-    g_BtoA = FEModel(model_def=build_generator,
-                     model_name="g_BtoA",
-                     loss_name="g_BtoA_loss",
-                     optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
+    g_BtoA = fe.build(model_def=build_generator,
+                      model_name="g_BtoA",
+                      loss_name="g_BtoA_loss",
+                      optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
 
-    d_A = FEModel(model_def=build_discriminator,
-                  model_name="d_A",
-                  loss_name="d_A_loss",
-                  optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
+    d_A = fe.build(model_def=build_discriminator,
+                   model_name="d_A",
+                   loss_name="d_A_loss",
+                   optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
 
-    d_B = FEModel(model_def=build_discriminator,
-                  model_name="d_B",
-                  loss_name="d_B_loss",
-                  optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
+    d_B = fe.build(model_def=build_discriminator,
+                   model_name="d_B",
+                   loss_name="d_B_loss",
+                   optimizer=tf.keras.optimizers.Adam(2e-4, 0.5))
 
     network = fe.Network(ops=[
         ModelOp(inputs="real_A", model=g_AtoB, outputs="fake_B"),
@@ -146,7 +146,11 @@ def get_estimator(weight=10.0, epochs=200, model_dir=tempfile.mkdtemp()):
         ModelSaver(model_name="g_AtoB", save_dir=model_dir, save_freq=10),
         ModelSaver(model_name="g_BtoA", save_dir=model_dir, save_freq=10)
     ]
-    estimator = fe.Estimator(network=network, pipeline=pipeline, epochs=epochs, traces=traces)
+    estimator = fe.Estimator(network=network,
+                             pipeline=pipeline,
+                             epochs=epochs,
+                             traces=traces,
+                             steps_per_epoch=steps_per_epoch)
     return estimator
 
 

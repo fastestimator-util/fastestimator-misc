@@ -19,34 +19,32 @@ from tensorflow.python.keras.losses import SparseCategoricalCrossentropy as Kera
 
 import fastestimator as fe
 from fastestimator.architecture import LeNet
-from fastestimator.estimator.trace import Accuracy, ConfusionMatrix, ModelSaver
-from fastestimator.network.loss import MixUpLoss, SparseCategoricalCrossentropy
-from fastestimator.network.model import FEModel, ModelOp
-from fastestimator.pipeline.augmentation import MixUpBatch
-from fastestimator.pipeline.processing import Minmax
-from fastestimator.util.schedule import Scheduler
+from fastestimator.op.tensorop import Minmax, MixUpBatch, MixUpLoss, ModelOp, SparseCategoricalCrossentropy
+from fastestimator.schedule import Scheduler
+from fastestimator.trace import Accuracy, ConfusionMatrix, ModelSaver
 
 
-def get_estimator(epochs=10, batch_size=32, alpha=1.0, warmup=0, model_dir=tempfile.mkdtemp()):
+def get_estimator(epochs=10, batch_size=32, alpha=1.0, warmup=0, steps_per_epoch=None, model_dir=tempfile.mkdtemp()):
     (x_train, y_train), (x_eval, y_eval) = tf.keras.datasets.cifar10.load_data()
     data = {"train": {"x": x_train, "y": y_train}, "eval": {"x": x_eval, "y": y_eval}}
     num_classes = 10
     pipeline = fe.Pipeline(batch_size=batch_size, data=data, ops=Minmax(inputs="x", outputs="x"))
 
-    model = FEModel(model_def=lambda: LeNet(input_shape=x_train.shape[1:], classes=num_classes),
-                    model_name="LeNet",
-                    optimizer="adam")
+    model = fe.build(model_def=lambda: LeNet(input_shape=x_train.shape[1:], classes=num_classes),
+                     model_name="LeNet",
+                     optimizer="adam",
+                     loss_name="loss")
 
     mixup_map = {warmup: MixUpBatch(inputs="x", outputs=["x", "lambda"], alpha=alpha, mode="train")}
     mixup_loss = {
-        0: SparseCategoricalCrossentropy(y_true="y", y_pred="y_pred", mode="train"),
-        warmup: MixUpLoss(KerasCrossentropy(), lam="lambda", y_true="y", y_pred="y_pred", mode="train")
+        0: SparseCategoricalCrossentropy(y_true="y", y_pred="y_pred", mode="train", outputs="loss"),
+        warmup: MixUpLoss(KerasCrossentropy(), lam="lambda", y_true="y", y_pred="y_pred", mode="train", outputs="loss")
     }
     network = fe.Network(ops=[
         Scheduler(mixup_map),
         ModelOp(inputs="x", model=model, outputs="y_pred"),
         Scheduler(mixup_loss),
-        SparseCategoricalCrossentropy(y_true="y", y_pred="y_pred", mode="eval")
+        SparseCategoricalCrossentropy(y_true="y", y_pred="y_pred", mode="eval", outputs="loss")
     ])
 
     traces = [
@@ -55,7 +53,11 @@ def get_estimator(epochs=10, batch_size=32, alpha=1.0, warmup=0, model_dir=tempf
         ModelSaver(model_name="LeNet", save_dir=model_dir, save_best=True)
     ]
 
-    estimator = fe.Estimator(network=network, pipeline=pipeline, epochs=epochs, traces=traces)
+    estimator = fe.Estimator(network=network,
+                             pipeline=pipeline,
+                             epochs=epochs,
+                             traces=traces,
+                             steps_per_epoch=steps_per_epoch)
     return estimator
 
 

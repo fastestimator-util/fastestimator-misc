@@ -18,18 +18,15 @@ import tempfile
 import numpy as np
 import tensorflow as tf
 
+import fastestimator as fe
+from fastestimator import Estimator, Network, Pipeline
 from fastestimator.architecture.retinanet import RetinaNet, get_fpn_anchor_box, get_target
 from fastestimator.dataset import svhn
-from fastestimator.estimator.estimator import Estimator
-from fastestimator.estimator.trace import ModelSaver
-from fastestimator.network.loss import Loss
-from fastestimator.network.model import FEModel, ModelOp
-from fastestimator.network.network import Network
-from fastestimator.pipeline.pipeline import Pipeline
-from fastestimator.pipeline.processing import Minmax
-from fastestimator.record.preprocess import ImageReader, Resize
-from fastestimator.record.record import RecordWriter
-from fastestimator.util.op import NumpyOp, TensorOp
+from fastestimator.op import NumpyOp, TensorOp
+from fastestimator.op.numpyop import ImageReader, Resize
+from fastestimator.op.tensorop import Loss, Minmax, ModelOp
+from fastestimator.trace import ModelSaver
+from fastestimator.util import RecordWriter
 
 
 class String2List(NumpyOp):
@@ -158,7 +155,7 @@ class PredictBox(TensorOp):
         return cls_selected, loc_selected, valid_outputs
 
 
-def get_estimator(batch_size=128, epochs=15, model_dir=tempfile.mkdtemp()):
+def get_estimator(batch_size=128, epochs=15, steps_per_epoch=None, model_dir=tempfile.mkdtemp()):
     # prepare data in disk
     train_csv, val_csv, path = svhn.load_data()
     writer = RecordWriter(
@@ -178,9 +175,10 @@ def get_estimator(batch_size=128, epochs=15, model_dir=tempfile.mkdtemp()):
                         ops=Minmax(inputs="image", outputs="image"),
                         read_feature=["image", "target_cls", "target_loc"])
     # prepare model
-    model = FEModel(model_def=lambda: RetinaNet(input_shape=(64, 128, 3), num_classes=10),
-                    model_name="retinanet",
-                    optimizer=tf.optimizers.Adam(learning_rate=0.0001))
+    model = fe.build(model_def=lambda: RetinaNet(input_shape=(64, 128, 3), num_classes=10),
+                     model_name="retinanet",
+                     optimizer=tf.optimizers.Adam(learning_rate=0.0001),
+                     loss_name="loss")
     network = Network(ops=[
         ModelOp(inputs="image", model=model, outputs=["pred_cls", "pred_loc"]),
         PredictBox(outputs=("cls_selected", "loc_selected", "valid_outputs"), mode="eval"),
@@ -191,6 +189,7 @@ def get_estimator(batch_size=128, epochs=15, model_dir=tempfile.mkdtemp()):
                           pipeline=pipeline,
                           epochs=epochs,
                           log_steps=20,
+                          steps_per_epoch=steps_per_epoch,
                           traces=ModelSaver(model_name="retinanet", save_dir=model_dir, save_best=True))
     return estimator
 

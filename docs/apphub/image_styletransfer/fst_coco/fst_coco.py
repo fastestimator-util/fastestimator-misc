@@ -15,18 +15,18 @@
 import os
 import tempfile
 
-import cv2
 import numpy as np
 import tensorflow as tf
 
+import cv2
 import fastestimator as fe
 from fastestimator.architecture.stnet import lossNet, styleTransferNet
 from fastestimator.dataset.mscoco import load_data
-from fastestimator.estimator.trace import ModelSaver
-from fastestimator.network.loss import Loss
-from fastestimator.network.model import FEModel, ModelOp
-from fastestimator.record.preprocess import ImageReader, Resize
-from fastestimator.util.op import TensorOp
+from fastestimator.op import TensorOp
+from fastestimator.op.numpyop import ImageReader, Resize
+from fastestimator.op.tensorop import Loss, ModelOp
+from fastestimator.trace import ModelSaver
+from fastestimator.util import RecordWriter
 
 
 class Rescale(TensorOp):
@@ -96,19 +96,20 @@ def get_estimator(style_img_path=None,
                   style_weight=5.0,
                   content_weight=1.0,
                   tv_weight=1e-4,
+                  steps_per_epoch=None,
                   model_dir=tempfile.mkdtemp()):
     train_csv, path = load_data(data_path)
     if style_img_path is None:
         style_img_path = tf.keras.utils.get_file(
             'kandinsky.jpg',
-            'https://storage.googleapis.com/download.tensorflow.org/example_images/Vassily_Kandinsky%2C_1913_-_Composition_7.jpg'
-        )
+            'https://storage.googleapis.com/download.tensorflow.org/example_images/Vassily_Kandinsky%2C_1913_'
+            '-_Composition_7.jpg')
     style_img = cv2.imread(style_img_path)
     assert (style_img is not None), "Invalid style reference image"
     tfr_save_dir = os.path.join(path, 'FEdata')
     style_img = (style_img.astype(np.float32) / 127.5) / 127.5
     style_img_t = tf.convert_to_tensor(np.expand_dims(style_img, axis=0))
-    writer = fe.RecordWriter(
+    writer = RecordWriter(
         train_data=train_csv,
         save_dir=tfr_save_dir,
         ops=[
@@ -118,10 +119,10 @@ def get_estimator(style_img_path=None,
 
     pipeline = fe.Pipeline(batch_size=4, data=writer, ops=[Rescale(inputs="image", outputs="image")])
 
-    model = FEModel(model_def=styleTransferNet,
-                    model_name="style_transfer_net",
-                    loss_name="loss",
-                    optimizer=tf.keras.optimizers.Adam(1e-3))
+    model = fe.build(model_def=styleTransferNet,
+                     model_name="style_transfer_net",
+                     loss_name="loss",
+                     optimizer=tf.keras.optimizers.Adam(1e-3))
 
     network = fe.Network(ops=[
         ModelOp(inputs="image", model=model, outputs="image_out"),
@@ -137,6 +138,7 @@ def get_estimator(style_img_path=None,
     estimator = fe.Estimator(network=network,
                              pipeline=pipeline,
                              epochs=2,
+                             steps_per_epoch=steps_per_epoch,
                              traces=ModelSaver(model_name="style_transfer_net", save_dir=model_dir))
     return estimator
 

@@ -20,12 +20,11 @@ import tensorflow as tf
 import fastestimator as fe
 from fastestimator.architecture.unet import UNet
 from fastestimator.dataset import cub200
-from fastestimator.estimator.trace import Dice, ModelSaver
-from fastestimator.network.loss import BinaryCrossentropy
-from fastestimator.network.model import FEModel, ModelOp
-from fastestimator.pipeline.processing import Minmax
-from fastestimator.record.preprocess import ImageReader, MatReader, Reshape, Resize
-from fastestimator.util.op import NumpyOp
+from fastestimator.op import NumpyOp
+from fastestimator.op.numpyop import ImageReader, MatReader, Reshape, Resize
+from fastestimator.op.tensorop import BinaryCrossentropy, Minmax, ModelOp
+from fastestimator.trace import Dice, ModelSaver
+from fastestimator.util import RecordWriter
 
 
 class SelectDictKey(NumpyOp):
@@ -34,10 +33,10 @@ class SelectDictKey(NumpyOp):
         return data
 
 
-def get_estimator(batch_size=32, epochs=25, model_dir=tempfile.mkdtemp()):
+def get_estimator(batch_size=32, epochs=25, steps_per_epoch=None, model_dir=tempfile.mkdtemp()):
     # load CUB200 dataset.
     csv_path, path = cub200.load_data()
-    writer = fe.RecordWriter(
+    writer = RecordWriter(
         save_dir=os.path.join(path, "FEdata"),
         train_data=csv_path,
         validation_data=0.2,
@@ -49,22 +48,27 @@ def get_estimator(batch_size=32, epochs=25, model_dir=tempfile.mkdtemp()):
             Resize((128, 128), keep_ratio=True),
             Reshape(shape=(128, 128, 1), outputs="annotation")
         ])
-    #data pipeline
+    # data pipeline
     pipeline = fe.Pipeline(batch_size=batch_size, data=writer, ops=Minmax(inputs='image', outputs='image'))
 
-    #Netowrk
-    model = FEModel(model_def=UNet, model_name="unet_cub", optimizer=tf.optimizers.Adam())
+    # Network
+    model = fe.build(model_def=UNet, model_name="unet_cub", optimizer=tf.optimizers.Adam(), loss_name="loss")
     network = fe.Network(ops=[
         ModelOp(inputs='image', model=model, outputs='mask_pred'),
-        BinaryCrossentropy(y_true='annotation', y_pred='mask_pred')
+        BinaryCrossentropy(y_true='annotation', y_pred='mask_pred', outputs="loss")
     ])
 
-    #estimator
+    # estimator
     traces = [
         Dice(true_key="annotation", pred_key='mask_pred'),
         ModelSaver(model_name="unet_cub", save_dir=model_dir, save_best=True)
     ]
-    estimator = fe.Estimator(network=network, pipeline=pipeline, traces=traces, epochs=epochs, log_steps=50)
+    estimator = fe.Estimator(network=network,
+                             pipeline=pipeline,
+                             traces=traces,
+                             epochs=epochs,
+                             steps_per_epoch=steps_per_epoch,
+                             log_steps=50)
     return estimator
 
 
