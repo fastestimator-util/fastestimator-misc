@@ -36,10 +36,10 @@ class CombineLeftRightMask(NumpyOp):
         return data
 
 
-def get_estimator(batch_size=4, epochs=25, steps_per_epoch=None, model_dir=tempfile.mkdtemp()):
+def get_estimator(batch_size=4, epochs=25, steps_per_epoch=None, validation_steps=None, model_dir=tempfile.mkdtemp()):
     csv_path, path = montgomery.load_data()
     writer = RecordWriter(
-        save_dir=os.path.join(path, "FEdata"),
+        save_dir=os.path.join(path, "tfrecords"),
         train_data=csv_path,
         validation_data=0.2,
         ops=[
@@ -86,7 +86,8 @@ def get_estimator(batch_size=4, epochs=25, steps_per_epoch=None, model_dir=tempf
                              epochs=epochs,
                              log_steps=20,
                              traces=traces,
-                             steps_per_epoch=steps_per_epoch)
+                             steps_per_epoch=steps_per_epoch,
+                             validation_steps=validation_steps)
     return estimator
 
 
