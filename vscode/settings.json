@@ -30,7 +30,7 @@
         "--max-attributes=20",
         "--ignored-modules=tensorflow,cv2",
         "--contextmanager-decorators=tensorflow.python.util.tf_contextlib.contextmanager",
-        "--good-names=df"
+        "--good-names=df,op"
     ],
     //pytest
     "python.testing.nosetestsEnabled": false,
