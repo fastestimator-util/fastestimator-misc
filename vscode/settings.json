@@ -30,12 +30,13 @@
         "--max-attributes=20",
         "--ignored-modules=tensorflow,cv2",
         "--contextmanager-decorators=tensorflow.python.util.tf_contextlib.contextmanager",
-        "--good-names=df,op"
+        "--good-names=df,op",
+        "--jobs=0"
     ],
     //pytest
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
+    "python.testing.pytestEnabled": false,
     "python.testing.pytestArgs": [
         "-v"
     ],
