@@ -7,8 +7,8 @@ summary
    :show-inheritance:
 
 .. toctree::
-
    :maxdepth: 1
+   
    fastestimator.summary.logs
 
 ----------------------------------
