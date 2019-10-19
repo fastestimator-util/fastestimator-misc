@@ -191,6 +191,6 @@ nbsphinx_epilog = r"""
 ---
 
 `Example Link to GitHub
-<https://github.com/fastestimator/fastestimator/blob/master/{{ env.doc2path(env.docname, base=None) }}>`_
+<https://github.com/fastestimator/fastestimator/blob/r1.0b0/{{ env.doc2path(env.docname, base=None) }}>`_
 
 """
