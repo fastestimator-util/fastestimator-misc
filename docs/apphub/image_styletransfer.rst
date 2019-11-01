@@ -5,4 +5,4 @@ Image Style Transfer
    :maxdepth: 1
    :glob:
 
-   image_styletransfer/**/*
+   style_transfer/**/*
