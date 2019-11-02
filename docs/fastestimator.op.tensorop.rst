@@ -8,7 +8,7 @@ tensorop
 
 .. toctree::
    :maxdepth: 1
-   
+
    fastestimator.op.tensorop.augmentation
    fastestimator.op.tensorop.filter
    fastestimator.op.tensorop.loss
@@ -79,9 +79,9 @@ scale
 
 ----------------------------------
 
-z_score
+zscore
 ----------------------------------
-.. automodule:: fastestimator.op.tensorop.z_score
+.. automodule:: fastestimator.op.tensorop.zscore
    :members:
    :undoc-members:
    :show-inheritance:

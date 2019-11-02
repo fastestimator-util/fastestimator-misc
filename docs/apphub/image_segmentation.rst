@@ -1,8 +1,8 @@
-Image Segmentation
+Semantic Segmentation
 =========================================
 
 .. toctree::
    :maxdepth: 1
-   :glob: 
+   :glob:
 
-   image_segmentation/**/*
+   semantic_segmentation/**/*

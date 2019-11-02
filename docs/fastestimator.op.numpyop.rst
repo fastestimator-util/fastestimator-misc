@@ -60,9 +60,9 @@ scale
 
 ---------------------
 
-z_score
+zscore
 ---------------------
-.. automodule:: fastestimator.op.numpyop.z_score
+.. automodule:: fastestimator.op.numpyop.zscore
    :members:
    :undoc-members:
    :show-inheritance:
