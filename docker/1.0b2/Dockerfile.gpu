@@ -1,0 +1,11 @@
+FROM tensorflow/tensorflow:2.0.0-gpu-py3-jupyter
+
+# OpenCV dependencies
+RUN apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6
+
+RUN pip install --no-cache-dir \
+    fastestimator==1.0b2
