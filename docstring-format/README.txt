@@ -1,3 +1,4 @@
+```python
 def function_with_types_in_docstring(param1, param2):
     """Example function with types documented in the docstring.
 
@@ -254,3 +255,4 @@ class ExampleClass(object):
 
     def _private_without_docstring(self):
         pass
+```
