@@ -2,16 +2,17 @@ discuss part:
 1. hierarchy of beginner, advanced, FAQ
 2. scheduler in beginner or advanced
 3.
-: diretory
-*: jupyter notebook file
--: heading in jupyter notebook
---------------------------------------------------------------------------------------
-tutorial structure
-* overview
-(content)
-[* related apphub]
----------------------------------------------------------------------------------------
-beginner
+
+
+# tutorial general structure
+    * overview
+    * (content)
+    * related Apphub (optional)
+
+
+# tutorial:
+
+## beginner
     1. Getting started (MNIST image classification)
         - Pipeline -> Network -> Estimator
         - Ops
@@ -21,7 +22,7 @@ beginner
         - trace
             - Concept (inputs, outputs)
             - mode   (act like callbacks, reference later for more capabilities)
-         Example: ModelSaver+Accuracy   
+         Example: ModelSaver+Accuracy
 
 
     2. FastEstimator dataset
@@ -42,7 +43,7 @@ beginner
             - pytorch dataloader (example)
             - FE dataset, torch dataset
         - Pipeline steps
-            - NumpyOp 
+            - NumpyOp
                 - univariate
                 - multivariate(why we structure them this way- ref albumentation)
                 - meta
@@ -97,14 +98,14 @@ beginner
 
 
 
-advanced
-    * CLI usage:
-        -(cli: looking for get_estimator,  --arg is replacing the arg in get_estimator)
+## advanced
+    1. Cli usage
+        - (cli: looking for get_estimator,  --arg is replacing the arg in get_estimator)
         - fastestiamtor train
         - fastestiamtor test
         - fastestiamtor train --hyperparameters param.json
 
-   * Op
+   2. Op:
         - Deep go through of Operator funcition
             - state
             - data
@@ -118,7 +119,7 @@ advanced
            - backend
 
 
-    FE dataset
+   3. FE dataset
         * how to customize dataset (point to pytorch tutorial
         * how to split
             - based on sample index
@@ -147,7 +148,7 @@ advanced
         - pipeline padding
         - get_loader: (loop through dataset)
         - benchmark
-    
+
 
 
 
@@ -173,7 +174,7 @@ advanced
             summary = est.test(summary="experiment1")
 
        * TensorBoard
-        
+
        * log parsing &experiment logging (visualization):
             - use summary object
             - use trainig log txt
