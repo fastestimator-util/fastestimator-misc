@@ -52,10 +52,11 @@ discuss part:
 
 
 ## t03_Operator - XD
-* Concept (How things connect? (input, output mechanism)
-* mode meaning
-* mode expression
-
+* Operator Concept
+* inputs/outputs/
+* mode
+* Operator connections
+* examples
 
 
 ## t04_Pipeline - VS
@@ -100,17 +101,19 @@ discuss part:
 
 
 ## t07_Estimator - XD
-    6. Create estimator
-        * Monitor training process
-            * Trace:
-                * metric
-                * logger
-                * model saver
-        * Estimator other args
-            * max_steps_per_epoch
-            * log_steps
-            * monitor_names
-        * Trigger fit, test
+* Trace:
+    * concept, mode
+    * example(model_saver)
+* Estimator other args
+    * max_steps_per_epoch
+    * log_steps
+    * monitor_names
+* Trigger fit, test
+
+
+# t08 inferencing and mode
+
+
 
 # t08 Inference - YC
 * data[0]
@@ -119,14 +122,16 @@ discuss part:
 
 
 
+
+
 ## advanced
-    1. Cli usage
+* t09 Cli usage
         * (cli: looking for get_estimator,  **arg is replacing the arg in get_estimator)
         * fastestiamtor train
         * fastestiamtor test
         * fastestiamtor train **hyperparameters param.json
 
-   2. Op:
+* t10   mode:
         * Deep go through of Operator funcition
             * state
             * data
