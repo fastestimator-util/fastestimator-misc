@@ -101,18 +101,18 @@ discuss part:
 
 
 ## t07_Estimator - XD
-* Estimator
-    * change logging behavior
-    * max_steps_per_epoch
-    * monitor_names
+    * Estimator
+        * change logging behavior
+        * max_steps_per_epoch
+        * monitor_names
 
-* Trigger fit, test
+    * Trigger fit, test
 
 
-* Trace:
-    * concept
-    * structure
-    * example(model_saver)
+    * Trace:
+        * concept
+        * structure
+        * example(model_saver)
 
 
 
@@ -125,11 +125,11 @@ discuss part:
 * pipeline transform
 * network transform
 
-* t10 Cli usage - XD
-        * (cli: looking for get_estimator,  **arg is replacing the arg in get_estimator)
+* t10 Cli usage - PB
+        * mechanism(cli: looking for get_estimator,  **arg is replacing the arg in get_estimator)
         * fastestiamtor train
         * fastestiamtor test
-        * fastestiamtor train **hyperparameters param.json
+        * fastestiamtor train --hyperparameters param.json
 
 
 
