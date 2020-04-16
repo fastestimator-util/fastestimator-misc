@@ -60,22 +60,38 @@ discuss part:
 
 
 ## t04_Pipeline - VS
-* Pipeline data source
-    * tf.data.Dataset (example)
-    * pytorch dataloader (example)
-    * FE dataset, torch dataset
-* Pipeline steps
-    * NumpyOp
-        * univariate
-        * multivariate(why we structure them this way ref albumentation)
-        * meta
-    * mention customization
-    * Customize NumpyOp(simple example)
-* Pipeline other args
-    * batch_size
-    * train_data, eval_data, test_data
-* Piepline debugging
-    * get_result
+* DL needs preprocessing - > pipeline -> CPU
+
+* Pipeline API
+   * train/eval/test:
+        pipeline_tf * tf.data.Dataset (example) -
+        pipeline_torch * pytorch dataloader (example) -
+        pipeline_fe * import from existing FE dataset /simple torch dataset -
+
+   * pipeline.get_results(batch_size:4)
+     call all of instances
+
+* NumpyOp - if you are using FEdataset/torchdataset
+    * Concept (Non-tensor) (inheriting Op - reference tutotial 3) - lots of augmentation from albumentajtion
+
+    * univarite (same forward regardless of feature)
+        multi-io:  Minmax(inputs=("x", "y"), out=("x", "y"))
+    * multivariate (different forward dependent on feature )
+        bbox,image.  use one example
+
+    * customizing numpyOp:
+        *(add random noise)
+
+* Example:
+    mnist/cifar:
+        Normalize(univariate)
+        Rotation(multi-variate)
+        Add random noise
+        use them in Pipeline
+        call get_results
+        visualize the results
+
+
 
 ## t05_Model - GK
 * Define model function(pytorch, tensorflow)
@@ -101,18 +117,18 @@ discuss part:
 
 
 ## t07_Estimator - XD
-* Estimator
-    * change logging behavior
-    * max_steps_per_epoch
-    * monitor_names
+    * Estimator
+        * change logging behavior
+        * max_steps_per_epoch
+        * monitor_names
 
-* Trigger fit, test
+    * Trigger fit, test
 
 
-* Trace:
-    * concept
-    * structure
-    * example(model_saver)
+    * Trace:
+        * concept
+        * structure
+        * example(model_saver)
 
 
 
@@ -125,11 +141,11 @@ discuss part:
 * pipeline transform
 * network transform
 
-* t10 Cli usage - XD
-        * (cli: looking for get_estimator,  **arg is replacing the arg in get_estimator)
+* t10 Cli usage - PB
+        * mechanism(cli: looking for get_estimator,  **arg is replacing the arg in get_estimator)
         * fastestiamtor train
         * fastestiamtor test
-        * fastestiamtor train **hyperparameters param.json
+        * fastestiamtor train --hyperparameters param.json
 
 
 
@@ -173,6 +189,7 @@ discuss part:
         * NumpyOp:
             * deleteOp
             * Customize numpyOp
+            * meta
 
         *TensorOp:
             * why we don't need `DeleteOp` * we already have gpu key filtering in network
