@@ -52,10 +52,11 @@ discuss part:
 
 
 ## t03_Operator - XD
-* Concept (How things connect? (input, output mechanism)
-* mode meaning
-* mode expression
-
+* Operator Concept
+* inputs/outputs/
+* mode
+* Operator connections
+* examples
 
 
 ## t04_Pipeline - VS
@@ -100,47 +101,42 @@ discuss part:
 
 
 ## t07_Estimator - XD
-    6. Create estimator
-        * Monitor training process
-            * Trace:
-                * metric
-                * logger
-                * model saver
-        * Estimator other args
-            * max_steps_per_epoch
-            * log_steps
-            * monitor_names
-        * Trigger fit, test
+* Estimator
+    * change logging behavior
+    * max_steps_per_epoch
+    * monitor_names
 
-# t08 Inference - YC
+* Trigger fit, test
+
+
+* Trace:
+    * concept
+    * structure
+    * example(model_saver)
+
+
+
+# t08 mode - XD
+
+
+
+# t09 Inference - YC
 * data[0]
 * pipeline transform
 * network transform
 
-
-
-## advanced
-    1. Cli usage
+* t10 Cli usage - XD
         * (cli: looking for get_estimator,  **arg is replacing the arg in get_estimator)
         * fastestiamtor train
         * fastestiamtor test
         * fastestiamtor train **hyperparameters param.json
 
-   2. Op:
-        * Deep go through of Operator funcition
-            * state
-            * data
-        * NumpyOp:
-            * deleteOp
-            * Customize numpyOp
-
-        *TensorOp:
-            * why we don't need `DeleteOp` * we already have gpu key filtering in network
-           * customize tensorOp
-           * backend
 
 
-   3. FE dataset
+
+## advanced
+
+* t01. FE dataset - advanced
         * how to customize dataset (point to pytorch tutorial
         * how to split
             * based on sample index
@@ -165,15 +161,34 @@ discuss part:
             * unpaired dataset batch=2, one from horse, one from zebra (different keys)
 
 
-    * Pipeline:
+* t02 pipeline-advanced
         * pipeline padding
         * get_loader: (loop through dataset)
         * benchmark
 
+* t03   op-advanced:
+        * op mechanism
+            * state
+            * data (how to grab data)
+        * NumpyOp:
+            * deleteOp
+            * Customize numpyOp
+
+        *TensorOp:
+            * why we don't need `DeleteOp` * we already have gpu key filtering in network
+           * customize tensorOp
+           * backend
+
+ * t04   Trace-advanced
+        * How multiple metrics work together
+            * ( T1: accuracy, T2: f1_score, )
+        * How to customize Trace:
+            * for debugging, monitoring/ calculating metrics
+            * trace time point (epoch_start, batch_start ....)
+        * Demo saving models
 
 
-
-    Scheduler:
+* t05 Scheduler:
         * Scheduler Basics: (epoch is unit time for scheduler)
             * EpochScheduler: {epoch: content} : {1: x, 3: None 4: y}:
                 *number means epoch of change.
@@ -189,7 +204,7 @@ discuss part:
                 * optimizer
 
 
-    Summary
+* t06 Summary
        * Accessing history in python way
             summary = est.fit(summary="experiment1")
             summary = est.test(summary="experiment1")
@@ -200,25 +215,12 @@ discuss part:
             * use summary object
             * use trainig log txt
 
-    Trace
-        * How multiple metrics work together
-            * ( T1: accuracy, T2: f1_score, )
-        * How to customize Trace:
-            * for debugging, monitoring/ calculating metrics
-            * trace time point (epoch_start, batch_start ....)
+* t07 learning rate scheduling - GK
+    * provide lambda function, then use 'epoch' or 'step' as argument name- check cifar10
+        * epoch
+        * step
+    * use exsiting lr shceudler(cosine/cyclic coscine/ linear decay) - check mnist
 
-
-    * learning rate scheduling
-        * provide lambda function, then use 'epoch' or 'step' as argument name
-        * use exsiting lr shceudler(cosine/cyclic coscine/ linear decay)
-
-
+* t08
      XAI
         * Saliency tutorial
-
-
-FAQ
-    * how to save training model
-        * Save by frequency
-        * Save by metircs(best)
-    * how to load model weight
