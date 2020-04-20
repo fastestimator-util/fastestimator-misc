@@ -13,7 +13,7 @@ discuss part:
 
 ## beginner
 
-### t01_getting_started - YC
+### t01_getting_started - XD
 * Pipeline *> Network *> Estimator
 * Simple example
 
@@ -49,9 +49,10 @@ discuss part:
 
     * Data from memory
         * NumpyDataset:
+    * generator_dataset
 
 
-## t03_Operator - XD
+### t03_Operator - XD
 * Operator Concept
 * inputs/outputs/
 * mode
@@ -59,7 +60,7 @@ discuss part:
 * examples
 
 
-## t04_Pipeline - VS
+### t04_Pipeline - VS
 * DL needs preprocessing - > pipeline -> CPU
 
 * Pipeline API
@@ -93,7 +94,7 @@ discuss part:
 
 
 
-## t05_Model - GK
+### t05_Model - GK
 * Define model function(pytorch, tensorflow)
     * import FE architecture
     * import tf.keras.application
@@ -116,7 +117,7 @@ discuss part:
     * backend
 
 
-## t07_Estimator - XD
+### t07_Estimator - XD
     * Estimator
         * change logging behavior
         * max_steps_per_epoch
@@ -132,16 +133,12 @@ discuss part:
 
 
 
-# t08 mode - XD
-
-
-
-# t09 Inference - YC
+# t08 mode , inferencing
 * data[0]
 * pipeline transform
 * network transform
 
-* t10 Cli usage - PB
+# t09 Cli usage - PB
         * mechanism(cli: looking for get_estimator,  **arg is replacing the arg in get_estimator)
         * fastestiamtor train
         * fastestiamtor test
@@ -152,51 +149,42 @@ discuss part:
 
 ## advanced
 
-* t01. FE dataset - advanced
-        * how to customize dataset (point to pytorch tutorial
-        * how to split
-            * based on sample index
-            * probability
-            * number
-            * muti*split (multiple of above)
-        * summary
-            * ds.summary
-            * print(ds)
-        * global dataset editing:
-            * apply sk.standardize (apphub tabular) ?
-        * how to create dataset from disk
-            * LabeledDirDataset
-            * CSV dataset
-            * generator_dataset
-            * DirDataset * (unlabeledDataset)
-            * LabeledDirDataset
-            * generator_dataset
-        * batch dataset
-            * deterministic batching: batch=8, 5 postive, 3 negative (same keys)
-            * stochastic batching: batch=8, 0.8 from postive, 0.2 from negative
-            * unpaired dataset batch=2, one from horse, one from zebra (different keys)
+### t01. FE dataset - advanced - XD
+* how to split
+    * based on sample index
+    * probability
+    * number
+    * muti*split (multiple of above)
+* summary
+    * ds.summary
+    * print(ds)
+* global dataset editing:
+    * apply sk.standardize (apphub tabular) ?
+* batch dataset
+    * deterministic batching: batch=8, 5 postive, 3 negative (same keys)
+    * stochastic batching: batch=8, 0.8 from postive, 0.2 from negative
+    * unpaired dataset batch=2, one from horse, one from zebra (different keys)
 
 
-* t02 pipeline-advanced
+### t02 pipeline-advanced
         * pipeline padding
         * get_loader: (loop through dataset)
         * benchmark
 
-* t03   op-advanced:
+### t03   op-advanced:
         * op mechanism
             * state
             * data (how to grab data)
         * NumpyOp:
             * deleteOp
-            * Customize numpyOp
             * meta
+            * customization
 
         *TensorOp:
-            * why we don't need `DeleteOp` * we already have gpu key filtering in network
-           * customize tensorOp
-           * backend
+           * customization
 
- * t04   Trace-advanced
+
+### t04  Trace-advanced
         * How multiple metrics work together
             * ( T1: accuracy, T2: f1_score, )
         * How to customize Trace:
@@ -205,7 +193,7 @@ discuss part:
         * Demo saving models
 
 
-* t05 Scheduler:
+### t05 Scheduler:
         * Scheduler Basics: (epoch is unit time for scheduler)
             * EpochScheduler: {epoch: content} : {1: x, 3: None 4: y}:
                 *number means epoch of change.
@@ -221,7 +209,7 @@ discuss part:
                 * optimizer
 
 
-* t06 Summary
+### t06 Summary - MP
        * Accessing history in python way
             summary = est.fit(summary="experiment1")
             summary = est.test(summary="experiment1")
@@ -232,12 +220,12 @@ discuss part:
             * use summary object
             * use trainig log txt
 
-* t07 learning rate scheduling - GK
+### t07 learning rate scheduling - GK
     * provide lambda function, then use 'epoch' or 'step' as argument name- check cifar10
         * epoch
         * step
     * use exsiting lr shceudler(cosine/cyclic coscine/ linear decay) - check mnist
 
-* t08
+### t08 - MP
      XAI
         * Saliency tutorial
