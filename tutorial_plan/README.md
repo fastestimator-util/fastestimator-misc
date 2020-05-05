@@ -185,13 +185,13 @@ discuss part:
 
 
 ### t04  Trace-advanced
-        * How multiple metrics work together
-            * ( T1: accuracy, T2: f1_score, )
-        * How to customize Trace:
-            * for debugging, monitoring/ calculating metrics
-            * trace time point (epoch_start, batch_start ....)
-        * Demo saving models
+        * Traces communication
+            * explanation(use the figure in paper)
+            * example (F1 score)
 
+        * Other trace usage:
+            * for debugging, monitoring  (example)
+            * system (epoch_idx, batch_idx, mode, global_step, other keys too) (example: pring something after every 10 step)
 
 ### t05 Scheduler:
         * Scheduler Basics: (epoch is unit time for scheduler)
