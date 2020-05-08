@@ -8,4 +8,4 @@ RUN apt-get install -y --no-install-recommends \
     libxext6
 
 RUN pip install --no-cache-dir \
-    fastestimator==1.0.0
+    fastestimator==1.0.1
