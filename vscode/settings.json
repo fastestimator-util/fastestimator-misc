@@ -21,7 +21,9 @@
         "-l",
         "120",
         "-m",
-        "2"
+        "2",
+        "--src",
+        "${workspaceFolder}"
     ],
     // pylint
     "python.linting.pylintUseMinimalCheckers": false,
