@@ -1,0 +1,74 @@
+$ fastestimator history
+
+2022-01-10 18:44:15.947189: I tensorflow/stream_executor/platform/default/dso_loader.cc:49] Successfully opened dynamic library libcudart.so.11.0
+SELECT h.* FROM history h ORDER BY h.train_start DESC LIMIT (15)
++---------+------------+-----------+------------+----------------------------+----------------------------+--------+--------+-----------+------------+
+|   file  | experiment |   status  | fe_version |        train_start         |         train_end          | n_gpus | n_cpus | n_workers | n_restarts |
++---------+------------+-----------+------------+----------------------------+----------------------------+--------+--------+-----------+------------+
+| demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:39:16.574032 | 2022-01-10 18:40:35.262646 |   1    |  256   |     32    |     0      |
+| demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:37:08.147362 | 2022-01-10 18:39:06.169434 |   1    |  256   |     32    |     0      |
+| demo.py |    None    |  Aborted  |   1.4.0    | 2022-01-10 18:30:09.245026 | 2022-01-10 18:35:40.836410 |   1    |  256   |     32    |     0      |
+| demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:19:06.722172 | 2022-01-10 18:20:26.641010 |   1    |  256   |     32    |     0      |
+| demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:16:49.942607 | 2022-01-10 18:18:56.030958 |   1    |  256   |     32    |     0      |
++---------+------------+-----------+------------+----------------------------+----------------------------+--------+--------+-----------+------------+
+
+$ fastestimator history --interactive
+
+2022-01-10 18:46:07.532523: I tensorflow/stream_executor/platform/default/dso_loader.cc:49] Successfully opened dynamic library libcudart.so.11.0
+SELECT h.* FROM history h ORDER BY h.train_start DESC LIMIT (15)
++-------+---------+------------+-----------+------------+----------------------------+----------------------------+--------+--------+-----------+------------+
+| Index |   file  | experiment |   status  | fe_version |        train_start         |         train_end          | n_gpus | n_cpus | n_workers | n_restarts |
++-------+---------+------------+-----------+------------+----------------------------+----------------------------+--------+--------+-----------+------------+
+|   1   | demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:39:16.574032 | 2022-01-10 18:40:35.262646 |   1    |  256   |     32    |     0      |
+|   2   | demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:37:08.147362 | 2022-01-10 18:39:06.169434 |   1    |  256   |     32    |     0      |
+|   3   | demo.py |    None    |  Aborted  |   1.4.0    | 2022-01-10 18:30:09.245026 | 2022-01-10 18:35:40.836410 |   1    |  256   |     32    |     0      |
+|   4   | demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:19:06.722172 | 2022-01-10 18:20:26.641010 |   1    |  256   |     32    |     0      |
+|   5   | demo.py |    None    | Completed |   1.4.0    | 2022-01-10 18:16:49.942607 | 2022-01-10 18:18:56.030958 |   1    |  256   |     32    |     0      |
++-------+---------+------------+-----------+------------+----------------------------+----------------------------+--------+--------+-----------+------------+
+Enter --help for available command details. Enter without an argument to re-print the current response. X to exit.
+
+$ log 1
+
+<prints logs from experiment 1>
+
+$ err 3
+
+SELECT exc_tb FROM errors WHERE errors.fk = (5804119342878757356)
+@@@@@@@@@@@ Traceback for Index 3 @@@@@@@@@@@
+Traceback (most recent call last):
+
+  File "/raid/potter/fastestimator/fastestimator/estimator.py", line 287, in _start
+    self._run_epoch(eager=eager)
+
+  File "/raid/potter/fastestimator/fastestimator/estimator.py", line 355, in _run_epoch
+    batch, prediction = self.network.run_step(batch)
+
+  File "/raid/potter/fastestimator/fastestimator/network.py", line 264, in run_step
+    batch, prediction = self._run_step(batch)
+
+  File "/raid/potter/fastestimator/fastestimator/network.py", line 652, in _run_step
+    to_list(self.effective_outputs[mode]))
+
+  File "/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/def_function.py", line 828, in __call__
+    result = self._call(*args, **kwds)
+
+  File "/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/def_function.py", line 862, in _call
+    results = self._stateful_fn(*args, **kwds)
+
+  File "/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/function.py", line 2943, in __call__
+    filtered_flat_args, captured_inputs=graph_function.captured_inputs)  # pylint: disable=protected-access
+
+  File "/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/function.py", line 1919, in _call_flat
+    ctx, args, cancellation_manager=cancellation_manager))
+
+  File "/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/function.py", line 560, in call
+    ctx=ctx)
+
+  File "/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/execute.py", line 60, in quick_execute
+    inputs, attrs, num_outputs)
+
+KeyboardInterrupt
+
+$ vis 1 2
+
+<Draw graphs of logs from experiments 1 and 2 and compare them>
