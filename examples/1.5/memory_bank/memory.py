@@ -30,7 +30,7 @@ class MemoryBank(Trace):
             else:
                 feature_selected.append(random.choice(self.memory_bank[label]))
         feature_selected = tf.convert_to_tensor(np.array(feature_selected, dtype="float32"))
-        data.maps[1]["feature_selected"] = feature_selected
+        data.write_without_log("feature_selected", feature_selected)
 
     def on_batch_end(self, data):
         feature_vectors = data["feature_vector"].numpy()
