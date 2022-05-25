@@ -14,12 +14,13 @@
 # ==============================================================================
 """RetinaNet Example."""
 import tempfile
+from typing import Any, Dict, Iterable, List, Tuple, TypeVar, Union
 
 import cv2
 import numpy as np
 import tensorflow as tf
 from albumentations import BboxParams
-from tensorflow.python.keras import layers, models, regularizers
+from tensorflow.keras import layers, models, regularizers
 
 import fastestimator as fe
 from fastestimator.dataset.data import mscoco
@@ -81,6 +82,52 @@ class ShiftLabel(NumpyOp):
         bbox = np.array(data, dtype=np.float32)
         bbox[:, -1] = bbox[:, -1] - 1
         return bbox
+
+
+class RetinaLoss(TensorOp):
+
+    def forward(self, data, state):
+        focal_loss, l1_loss = data
+        total_loss = focal_loss + l1_loss
+        return total_loss
+
+
+class SmoothL1Loss(TensorOp):
+
+    def forward(self, data, state):
+        anchorbox, cls_pred, loc_pred = data
+        batch_size = anchorbox.shape[0]
+        l1_loss = []
+        for idx in range(batch_size):
+            single_loc_gt, single_cls_gt = anchorbox[idx][:, :-1], tf.cast(
+                anchorbox[idx][:, -1], tf.int32)
+            single_loc_pred, single_cls_pred = loc_pred[idx], cls_pred[idx]
+            anchor_obj_idx = tf.where(tf.greater_equal(single_cls_gt, 0))
+            single_l1_loss = self.smooth_l1(single_loc_gt, single_loc_pred,
+                                            anchor_obj_idx)
+            l1_loss.append(single_l1_loss)
+        l1_loss = tf.reduce_mean(l1_loss)
+        return l1_loss
+
+    def smooth_l1(self,
+                  single_loc_gt,
+                  single_loc_pred,
+                  anchor_obj_idx,
+                  beta=0.1):
+        # single_loc_gt shape: [num_anchor x 4], anchor_obj_idx shape:  [num_anchor x 4]
+        single_loc_pred = tf.gather_nd(single_loc_pred,
+                                       anchor_obj_idx)  # anchor_obj_count x 4
+        single_loc_gt = tf.gather_nd(single_loc_gt,
+                                     anchor_obj_idx)  # anchor_obj_count x 4
+        anchor_obj_count = tf.cast(tf.shape(single_loc_pred)[0], tf.float32)
+        single_loc_gt = tf.reshape(single_loc_gt, (-1, 1))
+        single_loc_pred = tf.reshape(single_loc_pred, (-1, 1))
+        loc_diff = tf.abs(single_loc_gt - single_loc_pred)
+        cond = tf.less(loc_diff, beta)
+        loc_loss = tf.where(cond, 0.5 * loc_diff**2 / beta,
+                            loc_diff - 0.5 * beta)
+        loc_loss = tf.reduce_sum(loc_loss) / anchor_obj_count
+        return loc_loss
 
 
 class AnchorBox(NumpyOp):
@@ -342,102 +389,6 @@ def RetinaNet(input_shape, num_classes, num_anchor=9):
     return tf.keras.Model(inputs=inputs, outputs=[cls_output, loc_output])
 
 
-class FocalLossHelper(TensorOp):
-
-    def forward(self, data, state):
-        anchorbox, cls_pred, loc_pred = data
-        no_of_classes = cls_pred.shape[-1]
-        loc_gt, cls_gt = anchorbox[:, :, :-1], tf.cast(anchorbox[:, :, -1],
-                                                       tf.int32)
-
-        batch_size = tf.shape(cls_gt)[0] * tf.shape(cls_gt)[1]
-
-        # gather the objects and background, discard the rest
-        cls_gt = tf.one_hot(cls_gt, no_of_classes)
-
-        cls_gt = tf.reshape(cls_gt, (batch_size, -1))
-        cls_pred = tf.reshape(cls_pred, (batch_size, -1))
-
-        return cls_gt, cls_pred
-
-
-class FocalLossAvg(TensorOp):
-
-    def forward(self, data, state):
-        cls_pred, focal_loss = data
-        batch_size = cls_pred.shape[0]
-        return focal_loss / batch_size
-
-
-class RetinaLoss(TensorOp):
-
-    def forward(self, data, state):
-        anchorbox, cls_pred, loc_pred = data
-        batch_size = anchorbox.shape[0]
-        focal_loss, l1_loss, total_loss = [], [], []
-        for idx in range(batch_size):
-            single_loc_gt, single_cls_gt = anchorbox[idx][:, :-1], tf.cast(
-                anchorbox[idx][:, -1], tf.int32)
-            single_loc_pred, single_cls_pred = loc_pred[idx], cls_pred[idx]
-            single_focal_loss, anchor_obj_idx = self.focal_loss(
-                single_cls_gt, single_cls_pred)
-            single_l1_loss = self.smooth_l1(single_loc_gt, single_loc_pred,
-                                            anchor_obj_idx)
-            focal_loss.append(single_focal_loss)
-            l1_loss.append(single_l1_loss)
-        focal_loss, l1_loss = tf.reduce_mean(focal_loss), tf.reduce_mean(
-            l1_loss)
-        total_loss = focal_loss + l1_loss
-        return total_loss, focal_loss, l1_loss
-
-    def focal_loss(self,
-                   single_cls_gt,
-                   single_cls_pred,
-                   alpha=0.25,
-                   gamma=2.0):
-        # single_cls_gt shape: [num_anchor], single_cls_pred shape: [num_anchor, num_class]
-        num_classes = single_cls_pred.shape[-1]
-        # gather the objects and background, discard the rest
-        anchor_obj_idx = tf.where(tf.greater_equal(single_cls_gt, 0))
-        anchor_obj_bg_idx = tf.where(tf.greater_equal(single_cls_gt, -1))
-        anchor_obj_count = tf.cast(tf.shape(anchor_obj_idx)[0], tf.float32)
-        single_cls_gt = tf.one_hot(single_cls_gt, num_classes)
-        single_cls_gt = tf.gather_nd(single_cls_gt, anchor_obj_bg_idx)
-        single_cls_pred = tf.gather_nd(single_cls_pred, anchor_obj_bg_idx)
-        single_cls_gt = tf.reshape(single_cls_gt, (-1, 1))
-        single_cls_pred = tf.reshape(single_cls_pred, (-1, 1))
-        # compute the focal weight on each selected anchor box
-        alpha_factor = tf.ones_like(single_cls_gt) * alpha
-        alpha_factor = tf.where(tf.equal(single_cls_gt, 1), alpha_factor,
-                                1 - alpha_factor)
-        focal_weight = tf.where(tf.equal(single_cls_gt, 1),
-                                1 - single_cls_pred, single_cls_pred)
-        focal_weight = alpha_factor * focal_weight**gamma / anchor_obj_count
-        cls_loss = tf.losses.BinaryCrossentropy(reduction='sum')(
-            single_cls_gt, single_cls_pred, sample_weight=focal_weight)
-        return cls_loss, anchor_obj_idx
-
-    def smooth_l1(self,
-                  single_loc_gt,
-                  single_loc_pred,
-                  anchor_obj_idx,
-                  beta=0.1):
-        # single_loc_gt shape: [num_anchor x 4], anchor_obj_idx shape:  [num_anchor x 4]
-        single_loc_pred = tf.gather_nd(single_loc_pred,
-                                       anchor_obj_idx)  # anchor_obj_count x 4
-        single_loc_gt = tf.gather_nd(single_loc_gt,
-                                     anchor_obj_idx)  # anchor_obj_count x 4
-        anchor_obj_count = tf.cast(tf.shape(single_loc_pred)[0], tf.float32)
-        single_loc_gt = tf.reshape(single_loc_gt, (-1, 1))
-        single_loc_pred = tf.reshape(single_loc_pred, (-1, 1))
-        loc_diff = tf.abs(single_loc_gt - single_loc_pred)
-        cond = tf.less(loc_diff, beta)
-        loc_loss = tf.where(cond, 0.5 * loc_diff**2 / beta,
-                            loc_diff - 0.5 * beta)
-        loc_loss = tf.reduce_sum(loc_loss) / anchor_obj_count
-        return loc_loss
-
-
 class PredictBox(TensorOp):
     """Convert network output to bounding boxes.
     """
@@ -544,9 +495,27 @@ def lr_fn(step):
     return lr / 2  # original batch_size 16, for 512 we have batch_size 8
 
 
+class OneHotEncoder(TensorOp):
+
+    def __init__(
+        self,
+        inputs: str,
+        outputs: str,
+        num_classes: int,
+        mode: Union[None, str, Iterable[str]] = None,
+    ):
+        super().__init__(inputs=inputs, outputs=outputs, mode=mode)
+        self.num_classes = num_classes
+
+    def forward(self, data, state):
+        cls_gt = tf.cast(data[:, :, -1], tf.int32)
+        cls_gt = tf.one_hot(cls_gt, 90)
+        return cls_gt
+
+
 def get_estimator(data_dir=None,
                   model_dir=tempfile.mkdtemp(),
-                  batch_size=2,
+                  batch_size=8,
                   epochs=13,
                   train_steps_per_epoch=None,
                   eval_steps_per_epoch=None,
@@ -599,16 +568,15 @@ def get_estimator(data_dir=None,
         input_shape=(image_size, image_size, 3), num_classes=num_classes),
                      optimizer_fn=lambda: tf.optimizers.SGD(momentum=0.9))
     network = fe.Network(ops=[
+        OneHotEncoder(
+            inputs="anchorbox", outputs='class_gt', num_classes=num_classes),
         ModelOp(model=model, inputs="image", outputs=["cls_pred", "loc_pred"]),
-        RetinaLoss(inputs=["anchorbox", "cls_pred", "loc_pred"],
-                   outputs=["total_loss", "focal_loss", "l1_loss"]),
-        FocalLossHelper(inputs=["anchorbox", "cls_pred", "loc_pred"],
-                        outputs=['class_gt', 'class_pred']),
-        FocalLoss(inputs=["class_pred", "class_gt"],
-                  outputs="batch_focal_loss",
-                  reduction="sum"),
-        FocalLossAvg(inputs=["cls_pred", "batch_focal_loss"],
-                     outputs="focal_loss1"),
+        SmoothL1Loss(inputs=["anchorbox", "cls_pred", "loc_pred"],
+                     outputs="l1_loss"),
+        FocalLoss(inputs=["cls_pred", "class_gt"],
+                  outputs="focal_loss",
+                  reduction="mean"),
+        RetinaLoss(inputs=["focal_loss", "l1_loss"], outputs="total_loss"),
         UpdateOp(model=model, loss_name="total_loss"),
         PredictBox(input_shape=(image_size, image_size, 3),
                    inputs=["cls_pred", "loc_pred"],
@@ -629,14 +597,11 @@ def get_estimator(data_dir=None,
     ]
     estimator = fe.Estimator(pipeline=pipeline,
                              network=network,
-                             epochs=1,
-                             train_steps_per_epoch=200,
-                             eval_steps_per_epoch=200,
+                             epochs=epochs,
+                             train_steps_per_epoch=train_steps_per_epoch,
+                             eval_steps_per_epoch=eval_steps_per_epoch,
                              traces=traces,
-                             monitor_names=[
-                                 "l1_loss", "focal_loss", "batch_focal_loss",
-                                 "focal_loss1"
-                             ])
+                             monitor_names=["l1_loss", "focal_loss"])
 
     return estimator
 
