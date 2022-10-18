@@ -49,7 +49,7 @@ class SubBatchDataset(Dataset):
         old_batch_idx, old_element_idx = self._get_old_idx(idx)
         old_items = self.batched_ds[old_batch_idx]
         if old_element_idx + self.batch_size <= len(old_items):
-            # if there is enough samples in the old batch
+            # if there are enough samples in the old batch
             new_batch = old_items[old_element_idx:old_element_idx + self.batch_size]
         else:
             if old_batch_idx + 1 < len(self.batched_ds):
