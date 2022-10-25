@@ -49,5 +49,6 @@
         "**/.pytest_cache": true,
         "**/.ipynb_checkpoints": true,
         "*.egg-info": true,
-    }
+    },
+    "python.analysis.typeCheckingMode": "basic"
 }
