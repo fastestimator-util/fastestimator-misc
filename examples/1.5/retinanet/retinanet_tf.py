@@ -17,12 +17,10 @@ import tempfile
 from typing import Any, Dict, Iterable, List, Tuple, TypeVar, Union
 
 import cv2
+import fastestimator as fe
 import numpy as np
 import tensorflow as tf
 from albumentations import BboxParams
-from tensorflow.keras import layers, models, regularizers
-
-import fastestimator as fe
 from fastestimator.dataset.data import mscoco
 from fastestimator.op.numpyop import Batch, NumpyOp
 from fastestimator.op.numpyop.meta import Sometimes
@@ -34,6 +32,7 @@ from fastestimator.op.tensorop.model import ModelOp, UpdateOp
 from fastestimator.trace.adapt import LRScheduler
 from fastestimator.trace.io import BestModelSaver
 from fastestimator.trace.metric import MeanAveragePrecision
+from tensorflow.keras import layers, models, regularizers
 
 
 def _get_fpn_anchor_box(width: int, height: int):
@@ -575,7 +574,8 @@ def get_estimator(data_dir=None,
                      outputs="l1_loss"),
         FocalLoss(inputs=["cls_pred", "class_gt"],
                   outputs="focal_loss",
-                  reduction="mean"),
+                  sample_reduction="mean",
+                  shape_reduction="mean"),
         RetinaLoss(inputs=["focal_loss", "l1_loss"], outputs="total_loss"),
         UpdateOp(model=model, loss_name="total_loss"),
         PredictBox(input_shape=(image_size, image_size, 3),
